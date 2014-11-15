@@ -59,7 +59,7 @@ See the javadocs for more methods and parameters of DBQuery
 
 Installation
 -------------
-1.	Copy CORM.cn1lib from the dist directory to your projects lib folder
+1.	Download and copy [CORM.cn1lib](https://github.com/segun/corm/blob/master/dist/CORM.cn1lib?raw=true) to your projects lib folder
 2.	Open your project in the editor of your choice
 3.	Right click project and select Refresh Libs.
 4.	You can now call corm classes and methods in your project.
