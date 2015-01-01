@@ -11,7 +11,6 @@ import com.codename1.db.Row;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
@@ -83,6 +82,57 @@ public class DBQuery {
         }
     }
 
+    public boolean update(String tableName, String[] updateColumns, String updateValues[], String[] whereColumns, String[] whereValues, boolean silent) throws IOException {
+        if (whereColumns != null) {
+            if (whereColumns.length != whereValues.length) {
+                throw new RuntimeException("Where column names length did not match where values length: (" + whereColumns.length + ":" + whereValues.length + ")");
+            }
+        } else {
+            throw new RuntimeException("Where column names can not be null");
+        }
+
+        if (updateColumns != null) {
+            if (updateColumns.length != updateValues.length) {
+                throw new RuntimeException("Update column names length did not match update values length: (" + updateColumns.length + ":" + updateValues.length + ")");
+            }
+        } else {
+            throw new RuntimeException("Update column names can not be null");
+        }
+
+        String query = "UPDATE " + tableName + " SET ";
+
+        for (int i = 0; i < updateColumns.length; i++) {
+            String updateColumn = updateColumns[i];
+            String updateValue = updateValues[i];
+
+            query += updateColumn + "=" + updateValue + ", ";
+        }
+
+        query = query.substring(0, query.length() - 2);
+
+        query += " WHERE " + whereColumns[0] + " = " + whereValues[0] + " AND ";
+        for (int i = 1; i < whereColumns.length; i++) {
+            String whereCol = whereColumns[i];
+            String whereVal = whereValues[i];
+
+            query += whereCol + " = " + whereVal + " AND ";
+        }
+
+        query = query.substring(0, query.length() - 4);
+
+        System.err.println(query);
+        try {
+            db.beginTransaction();
+            db.execute(query);
+            db.commitTransaction();
+            return true;
+        } catch (IOException ex) {
+            db.rollbackTransaction();
+            throwEx(ex, false);
+        }
+        return false;
+    }
+
     public boolean delete(String tableName, String[] whereColumns, String[] whereValues, boolean silent) throws IOException {
         String query = "DELETE FROM " + tableName + " ";
         if (whereColumns != null) {
@@ -90,12 +140,12 @@ public class DBQuery {
                 throw new RuntimeException("Where column names length did not match where values length: (" + whereColumns.length + ":" + whereValues.length + ")");
             }
 
-            query += "WHERE " + whereColumns[0] + " = '" + whereValues[0] + "' AND ";
+            query += "WHERE " + whereColumns[0] + " = " + whereValues[0] + " AND ";
             for (int i = 1; i < whereColumns.length; i++) {
                 String whereCol = whereColumns[i];
                 String whereVal = whereValues[i];
 
-                query += whereCol + " = '" + whereVal + "' AND ";
+                query += whereCol + " = " + whereVal + " AND ";
             }
 
             query = query.substring(0, query.length() - 4);
@@ -175,12 +225,12 @@ public class DBQuery {
                 throw new RuntimeException("Where column names length did not match where values length: (" + whereColumns.length + ":" + whereValues.length + ")");
             }
 
-            query += "WHERE " + whereColumns[0] + " = '" + whereValues[0] + "' AND ";
+            query += "WHERE " + whereColumns[0] + " = " + whereValues[0] + " AND ";
             for (int i = 1; i < whereColumns.length; i++) {
                 String whereCol = whereColumns[i];
                 String whereVal = whereValues[i];
 
-                query += whereCol + " = '" + whereVal + "' AND ";
+                query += whereCol + " = " + whereVal + " AND ";
             }
 
             query = query.substring(0, query.length() - 4);
@@ -237,7 +287,7 @@ public class DBQuery {
             }
 
             query += " WHERE "
-                    + whereColumns[0] + " = '" + whereValues[0] + "' AND ";
+                    + whereColumns[0] + " = " + whereValues[0] + " AND ";
 
             for (int i = 1; i < whereColumns.length; i++) {
                 String whereCol = whereColumns[i];
@@ -248,6 +298,8 @@ public class DBQuery {
             query = query.substring(0, query.length() - 4);
         }
 
+        query += otherParams;
+        
         System.err.println(query);
 
         try {
